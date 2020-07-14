@@ -98,4 +98,4 @@ abline(v=h[which.min(mse)])
 Z = outer(x, y, lpr_2d, x=x, y=y, z=z, h=h[which.min(mse)])
 
 persp3D(z = Z)
-print(1)
+print(10)
