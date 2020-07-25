@@ -31,20 +31,88 @@ seperator = function(X, Y, Z)
     M[1, 2] = M[2, 1] = sum(x)
     M[1, 3] = M[3, 1] = sum(y)
     M[2, 3] = M[3, 2] = sum(x*y)
-    M[2, 2] sum(y * y)
-    M[3, 3] sum(x * x)
+    M[2, 2] = sum(y * y)
+    M[3, 3] = sum(x * x)
     M = solve(M)
-    z = c(sum(z), sum(x*z), sum(y*z))
-    beta = (m %*% z)[2:3]
-    x0 = x[length(x)/2 + 0.5]
-    y0 = x[length(y)/2 + 0.5]
+    z0 = c(sum(z), sum(x*z), sum(y*z))
+    beta = (M %*% z0)[2:3]
+    cut = two_planes(x, y, z, beta)
+    print(cut)
+    c_set = beta[1]*x + beta[2]*y
+    allocation = matrix(c_set<=cut, nrow = nrow(X), ncol = ncol(Y))
+    return(allocation)
+    # x0 = x[length(x)/2 + 0.5]
+    # y0 = x[length(y)/2 + 0.5]
 
 }
-two_planes = function(X, Y, Z, beta)
+two_planes = function(X, Y, Z, beta, iter_max = 10)
 {
     c_set = beta[1]*X + beta[2]*Y
     o = order(c_set)
-    X = X[order]; Y = Y[order]; Z = Z[order]
+    X = X[o]; Y = Y[o]; Z = Z[o]; c_set = c_set[o]
+    allocation = matrix(FALSE, nrow = length(c_set), ncol = length(c_set))
+    for(i in 1:length(c_set))
+    {
+        allocation[, i] = c_set <= c_set[i]
+    }
+    # print(allocation)
+    print(12345)
+    error = rep(0, length = length(c_set))
     c = sample(c_set, 1)
-    indicator = 
+    print(c)
+    print('c1')
+    indicator = c_set <= c
+    # print(indicator)
+    while(sum(indicator) <= 7 | sum(indicator) >= length(c_set)-7)
+    {
+        c = sample(c_set, 1)
+        indicator = c_set <= c
+    }
+    for(i in 1:iter_max)
+    {
+        # c = sample(c_set, 1)
+        indicator = c_set <= c
+        if(sum(indicator) <= 7 | sum(indicator) >= length(c_set)-7)
+        {
+            print('Bad')
+            return(c)
+        }
+        print('Good')
+        x = X[indicator]; y = Y[indicator]; z = Z[indicator]
+        # print(z)
+        M[1, 1] = length(x)
+        M[1, 2] = M[2, 1] = sum(x)
+        M[1, 3] = M[3, 1] = sum(y)
+        M[2, 3] = M[3, 2] = sum(x*y)
+        M[2, 2] = sum(y * y)
+        M[3, 3] = sum(x * x)
+        M = solve(M)
+        # print(c(x,y,z))
+        z0 = c(sum(z), sum(x*z), sum(y*z))
+        beta1 = (M %*% z0)
+        # print(M)
+        # print(z)
+        error1 = abs(beta1[1] + beta1[2]*X + beta1[3]*Y - Z)
+        # print(error1)
+        x = X[!indicator]; y = Y[!indicator]; z = Z[!indicator]
+        M[1, 1] = length(x)
+        M[1, 2] = M[2, 1] = sum(x)
+        M[1, 3] = M[3, 1] = sum(y)
+        M[2, 3] = M[3, 2] = sum(x*y)
+        M[2, 2] = sum(y * y)
+        M[3, 3] = sum(x * x)
+        M = solve(M)
+        z0 = c(sum(z), sum(x*z), sum(y*z))
+        beta2 = (M %*% z0)
+        error2 = abs(beta2[1] + beta2[2]*X + beta2[3]*Y - Z)
+        # print(error2)
+        for(j in 1:length(c_set))
+        {
+            error[j] = sum(error1*allocation[, j] + error2*(!allocation[, j]))
+        }
+        # print(error)
+        c = c_set[which.min(error)]
+        print(c)
+    }
+    return(c)
 }
