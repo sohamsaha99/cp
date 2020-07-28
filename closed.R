@@ -45,7 +45,7 @@ genimg=function(funspace, i=0, shape=f)
 	z=readPNG('temp.png')[,,1]
 	z=!z
 	# z = z[nrow(z):1, ]
-	persp3D(z=z)
+	# persp3D(z=z)
 	y=x=0:100/100
 	n=length(funspace)
 	n=sample(n,2)
@@ -61,5 +61,5 @@ genimg=function(funspace, i=0, shape=f)
 	# png(paste0('input.',i,'.png'),height=128,width=128);par(mar=c(0,0,0,0))
 	# image2D(Z, colkey=FALSE)
 	# dev.off()
-	list(z, Z)
+	Z
 }
