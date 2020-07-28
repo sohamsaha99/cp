@@ -2,12 +2,12 @@ library(plot3D)
 x = y = 0:99/100
 f = function(x, y)
 {
-    2*x + 3*y^2 + 5.5 + 9.0*x*x*as.numeric(x>0.5)
+    2*x + 3*y^2 + 5.5 + 0*9.0*x*x*as.numeric(y>0.5)
     # sin((x+y)) + as.numeric(x > 0.5) * cos((x+y)) * 0.2
     # 10 * x^2 #+ 0.5*y^2 * as.numeric(x>0.5)
 }
 z = outer(x, y, f)
-z = z + rnorm(nrow(z) * ncol(z), 0, 1)
+z = z + rnorm(nrow(z) * ncol(z), 0, 100)
 # persp3D(z = z)
 
 index = x >= 0.46 & x <= 0.54
@@ -106,10 +106,11 @@ two_planes = function(X, Y, Z, beta, iter_max = 10)
         beta2 = (M %*% z0)
         error2 = abs(beta2[1] + beta2[2]*X + beta2[3]*Y - Z)
         # print(error2)
-        for(j in 1:length(c_set))
-        {
-            error[j] = sum(error1*allocation[, j] + error2*(!allocation[, j]))
-        }
+        # for(j in 1:length(c_set))
+        # {
+        #     error[j] = sum(error1*allocation[, j] + error2*(!allocation[, j]))
+        # }
+        error = colSums(error1*allocation + error2*(!allocation))
         # print(error)
         c = c_set[which.min(error)]
         print(c)
