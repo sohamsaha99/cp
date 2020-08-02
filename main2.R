@@ -18,19 +18,23 @@ triangular_2d = function(x, y)
     (1 - abs(x)) * as.numeric(abs(x) <= 1) * (1 - abs(y)) * as.numeric(abs(y) <= 1)
 
 }
+fix_window = function(x0, y0, x, y)
 kernel = function(x, y)
 {
     outer(x, y, triangular_2d)
 }
-npr = function(x0, y0, x, y, z, h = 0.5, ker = kernel)
+npr = function(x0, y0, x, y, z, h = 0.5, ker = kernel, l = 0.4)
 {
+    x_window = which(abs(x - x0) <= l)
+    y_window = which(abs(y - y0) <= l)
+    x = x[x_window]; y = y[y_window]; z = z[x_window, y_window]
     wt = ker((x - x0)/h, (y - y0)/h)
     return(sum(wt * z)/sum(wt))
 }
 print(npr(x[1], y[1], x, y, z))
-npr_2d = function(x0, y0, x, y, z, h = 0.5, ker = kernel)
+npr_2d = function(x0, y0, x, y, z, h = 0.5, ker = kernel, l = 0.03)
 {
-    mapply(npr, x0, y0, MoreArgs = list(x=x, y=y, z=z, h = h, ker = ker))
+    mapply(npr, x0, y0, MoreArgs = list(x=x, y=y, z=z, h = h, ker = ker, l = l + .Machine$double.eps*100))
 }
 
 
@@ -54,8 +58,11 @@ print(1)
 
 z = z0 + rnorm(nrow(z0)*ncol(z0), 0, 0.5)
 persp3D(z = z)
-lpr = function(x0, y0, x, y, z, h = 0.5, ker = kernel)
+lpr = function(x0, y0, x, y, z, h = 0.5, ker = kernel, l = 0.4)
 {
+    x_window = which(abs(x - x0) <= l)
+    y_window = which(abs(y - y0) <= l)
+    x = x[x_window]; y = y[y_window]; z = z[x_window, y_window]
     wt = ker((x - x0)/h, (y - y0)/h)
     # X = replicate(length(y), x)
     # Y = replicate(length(x), y)
@@ -78,11 +85,11 @@ lpr = function(x0, y0, x, y, z, h = 0.5, ker = kernel)
 }
 print(lpr(x[1], y[1], x, y, z))
 
-lpr_2d = function(x0, y0, x, y, z, h = 0.5, ker = kernel)
+lpr_2d = function(x0, y0, x, y, z, h = 0.5, ker = kernel, l = 0.03)
 {
-    mapply(lpr, x0, y0, MoreArgs = list(x=x, y=y, z=z, h = h, ker = ker))
+    mapply(lpr, x0, y0, MoreArgs = list(x=x, y=y, z=z, h = h, ker = ker, l = l + .Machine$double.eps*100))
 }
-Z = outer(x, y, lpr_2d, x=x, y=y, z=z, h=0.35)
+Z = outer(x, y, lpr_2d, x=x, y=y, z=z, h=0.35) + .Machine$double.eps*100
 persp3D(z = Z)
 
 h = seq(0.05, 0.5, by=0.05)
