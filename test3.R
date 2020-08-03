@@ -2,7 +2,7 @@ library(plot3D)
 x = y = 0:99/100
 f = function(x, y)
 {
-    2*x + 3*y^2 + 5.5 + 17.0*x*as.numeric(x>0.52)
+    2*x + 3*y^2 + 5.5 + 0*17.0*x*as.numeric(x+y>0.52*2)
     # sin((x+y)) + as.numeric(x > 0.5) * cos((x+y)) * 0.2
     # 10 * x^2 #+ 0.5*y^2 * as.numeric(x>0.5)
 }
@@ -37,11 +37,66 @@ seperator = function(X, Y, Z)
     M[3, 3] = sum(x * x)
     M = solve(M)
     z0 = c(sum(z), sum(x*z), sum(y*z))
-    beta = (M %*% z0)[2:3]
-    cut = two_planes(x, y, z, beta)
+    beta = (M %*% z0)
+    c_set = beta[2]*X + beta[3]*Y
+    RSS0 = sum( (z - beta[1] - c_set)^2)
+    cut = two_planes(x, y, z, beta[2:3])
     print(cut)
-    c_set = beta[1]*x + beta[2]*y
-    allocation = matrix(c_set<=cut, nrow = nrow(X), ncol = ncol(Y))
+    RSS = cut[2]; cut = cut[1]
+    if(RSS < 0)
+    {
+        indicator = as.vector(c_set <= cut)
+        if(sum(indicator) <= 3)
+        {
+            RSS1 = 0
+        }
+        else
+        {
+            xx = x[indicator]; yy = y[indicator]; zz = z[indicator]
+            print(xx); print(yy); print(zz)
+            M[1, 1] = length(xx)
+            M[1, 2] = M[2, 1] = sum(xx)
+            M[1, 3] = M[3, 1] = sum(yy)
+            M[2, 3] = M[3, 2] = sum(xx*yy)
+            M[2, 2] = sum(yy * yy)
+            M[3, 3] = sum(xx * xx)
+            M = solve(M)
+            z0 = c(sum(zz), sum(xx*zz), sum(yy*zz))
+            beta = (M %*% z0)
+            RSS1 = sum( (zz - beta[1] - beta[2]*xx - beta[3]*yy)^2)
+        }
+        indicator = !indicator
+        if(sum(indicator) <= 3)
+        {
+            RSS2 = 0
+        }
+        else
+        {
+            print(xx); print(yy); print(zz)
+            xx = x[indicator]; yy = y[indicator]; zz = z[indicator]
+            M[1, 1] = length(xx)
+            M[1, 2] = M[2, 1] = sum(xx)
+            M[1, 3] = M[3, 1] = sum(yy)
+            M[2, 3] = M[3, 2] = sum(xx*yy)
+            M[2, 2] = sum(yy * yy)
+            M[3, 3] = sum(xx * xx)
+            M = solve(M)
+            z0 = c(sum(zz), sum(xx*zz), sum(yy*zz))
+            beta = (M %*% z0)
+            RSS2 = sum( (zz - beta[1] - beta[2]*xx - beta[3]*yy)^2)
+        }
+        print(c(RSS0, RSS1, RSS2))
+        RSS = RSS1 + RSS2
+    }
+    Fstat = ((RSS0-RSS)/3) / (RSS/(length(x)-6))
+    pvalue = pf(Fstat, 3, length(x)-6, lower.tail = FALSE)
+    print(c(Fstat, pvalue, 3, length(x) - 6))
+    if(pvalue > 0.001)
+    {
+        return(matrix(TRUE, nrow = nrow(X), ncol = ncol(Y)))
+    }
+    # allocation = matrix(c_set<=cut, nrow = nrow(X), ncol = ncol(Y))
+    allocation = c_set <= cut
     return(allocation)
     # x0 = x[length(x)/2 + 0.5]
     # y0 = x[length(y)/2 + 0.5]
@@ -51,7 +106,7 @@ two_planes = function(X, Y, Z, beta, iter_max = 10)
 {
     c_set = beta[1]*X + beta[2]*Y
     o = order(c_set)
-    X = X[o]; Y = Y[o]; Z = Z[o]; c_set = c_set[o]
+    # X = X[o]; Y = Y[o]; Z = Z[o]; c_set = c_set[o]
     allocation = matrix(FALSE, nrow = length(c_set), ncol = length(c_set))
     for(i in 1:length(c_set))
     {
@@ -76,10 +131,10 @@ two_planes = function(X, Y, Z, beta, iter_max = 10)
     {
         # c = sample(c_set, 1)
         indicator = c_set <= c
-        if(sum(indicator) <= 7 | sum(indicator) >= length(c_set)-7)
+        if(sum(indicator) <= 4 | sum(indicator) >= length(c_set)-4)
         {
             print('Bad')
-            return(c)
+            return(c(c, -1))
         }
         print('Good')
         x = X[indicator]; y = Y[indicator]; z = Z[indicator]
@@ -117,15 +172,17 @@ two_planes = function(X, Y, Z, beta, iter_max = 10)
         error = colSums(error1*allocation + error2*(!allocation))
         # print(error)
         c_old = c
-        c = c_set[which.min(error)]
+        p = which.min(error)
+        c = c_set[p]
+        RSS = error[p]
         if(c_old == c)
         {
             print('Same c')
-            return(c)
+            return(c(c, RSS))
         }
-        print(c)
+        print(c(c, RSS))
     }
-    return(c)
+    return(c(c, -1))
 }
 
 
