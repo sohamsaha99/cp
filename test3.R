@@ -2,7 +2,7 @@ library(plot3D)
 x = y = 0:99/100
 f = function(x, y)
 {
-    2*x + 3*y^2 + 5.5 + 0*17.0*x*as.numeric(x+y>0.52*2)
+    2*x + 3*y^2 + 5.5 + 4.0*x*as.numeric(x>0.52)
     # sin((x+y)) + as.numeric(x > 0.5) * cos((x+y)) * 0.2
     # 10 * x^2 #+ 0.5*y^2 * as.numeric(x>0.5)
 }
@@ -27,6 +27,7 @@ persp3D(z = Zhat, x = X, y=Y)
 # M = matrix(0, nrow = 3, ncol = 3)
 seperator = function(X, Y, Z)
 {
+    X = matrix(x, nrow = length(X), ncol = length(Y)); Y = matrix(rep(Y, each = nrow(X)), nrow = nrow(X))
     x = as.vector(X); y = as.vector(Y); z = as.vector(Z)
     M = matrix(0, nrow = 3, ncol = 3)
     M[1, 1] = length(x)
@@ -43,6 +44,12 @@ seperator = function(X, Y, Z)
     cut = two_planes(x, y, z, beta[2:3])
     print(cut)
     RSS = cut[2]; cut = cut[1]
+    if(RSS < 0)
+    {
+        cut = two_planes(x, y, z, beta[2:3])
+        print(cut)
+        RSS = cut[2]; cut = cut[1]
+    }
     if(RSS < 0)
     {
         indicator = as.vector(c_set <= cut)
@@ -72,8 +79,8 @@ seperator = function(X, Y, Z)
         }
         else
         {
-            print(xx); print(yy); print(zz)
             xx = x[indicator]; yy = y[indicator]; zz = z[indicator]
+            print(xx); print(yy); print(zz)
             M[1, 1] = length(xx)
             M[1, 2] = M[2, 1] = sum(xx)
             M[1, 3] = M[3, 1] = sum(yy)
@@ -91,7 +98,7 @@ seperator = function(X, Y, Z)
     Fstat = ((RSS0-RSS)/3) / (RSS/(length(x)-6))
     pvalue = pf(Fstat, 3, length(x)-6, lower.tail = FALSE)
     print(c(Fstat, pvalue, 3, length(x) - 6))
-    if(pvalue > 0.001)
+    if(pvalue > 0.005)
     {
         return(matrix(TRUE, nrow = nrow(X), ncol = ncol(Y)))
     }
