@@ -8,9 +8,9 @@ f = function(x, y)
 x = y = 0:99 / 100
 z0 = outer(x, y, f)
 z = z0 + rnorm(nrow(z0)*ncol(z0), 0, 0.5)
-persp3D(z = z)
-print('View input. Click to continue.')
-locator(1)
+# persp3D(z = z)
+# print('View input. Click to continue.')
+# locator(1)
 triangular_1d = function(x)
 {
     (1 - abs(x)) * as.numeric(abs(x) <= 1)
@@ -244,11 +244,11 @@ npr_2d = function(x0, y0, x, y, z, h = 0.5, ker = kernel, l = 0.03, jump = TRUE)
 # abline(v=h[which.min(mse)])
 
 # Z = outer(x, y, npr_2d, x=x, y=y, z=z, h=h[which.min(mse)])
-Z = outer(x, y, npr_2d, x=x, y=y, z=z, h=0.6, l = 0.05)
+# Z = outer(x, y, npr_2d, x=x, y=y, z=z, h=0.6, l = 0.05)
 
-persp3D(z = Z)
-print('Done. Click on plot to continue')
-locator(1)
+# persp3D(z = Z)
+# print('Done. Click on plot to continue')
+# locator(1)
 
 
 # z = z0 + rnorm(nrow(z0)*ncol(z0), 0, 0.5)
@@ -298,8 +298,8 @@ lpr_2d = function(x0, y0, x, y, z, h = 0.5, ker = kernel, l = 0.03, jump = TRUE)
 {
     mapply(lpr, x0, y0, MoreArgs = list(x=x, y=y, z=z, h = h, ker = ker, l = l + .Machine$double.eps*100, jump = jump))
 }
-Z = outer(x, y, lpr_2d, x=x, y=y, z=z, h=0.6, l = 0.05)
-persp3D(z = Z)
+# Z = outer(x, y, lpr_2d, x=x, y=y, z=z, h=0.6, l = 0.05)
+# persp3D(z = Z)
 
 # h = seq(0.05, 0.5, by=0.05)
 # mse = NULL
@@ -316,4 +316,16 @@ persp3D(z = Z)
 # Z = outer(x, y, lpr_2d, x=x, y=y, z=z, h=h[which.min(mse)])
 
 # persp3D(z = Z)
-print('Complete.. ')
+# print('Complete.. ')
+hset = seq(0.1, 1.0, length.out = 5)
+lset = seq(0.03, 0.07, by = 0.01)
+mse = matrix(NA, nrow = length(hset), ncol = length(lset))
+for(i in seq_len(length(hset)))
+{
+    for(j in seq_len(length(lset)))
+    {
+        Z = outer(x, y, npr_2d, x=x, y=y, z=z, h=hset[i], l=lset[j])
+        mse[i, j] = mean( (z-Z)^2)
+        print(c(i, j))
+    }
+}
