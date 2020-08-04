@@ -7,8 +7,10 @@ f = function(x, y)
 }
 x = y = 0:99 / 100
 z0 = outer(x, y, f)
-z = z0 + rnorm(nrow(z0)*ncol(z0), 0, 1.0)
+z = z0 + rnorm(nrow(z0)*ncol(z0), 0, 0.5)
 persp3D(z = z)
+print('View input. Click to continue.')
+locator(1)
 triangular_1d = function(x)
 {
     (1 - abs(x)) * as.numeric(abs(x) <= 1)
@@ -200,60 +202,76 @@ kernel = function(x, y)
 {
     outer(x, y, triangular_2d)
 }
-npr = function(x0, y0, x, y, z, h = 0.5, ker = kernel, l = 0.4)
+npr = function(x0, y0, x, y, z, h = 0.5, ker = kernel, l = 0.04, jump = TRUE)
 {
     # print(c(x0, y0))
     x_window = which(abs(x - x0) <= l)
     y_window = which(abs(y - y0) <= l)
     x = x[x_window]; y = y[y_window]; z = z[x_window, y_window]
-    allocation = tryCatch(expr = {seperator(x, y, z)}, error = function(e){print(e);matrix(TRUE, nrow = length(x), ncol = length(y))})
-    # allocation = seperator(x, y, z)
-    if(allocation[which.min(abs(x - x0)), which.min(abs(y - y0))] == FALSE)
+    if(jump)
     {
-        allocation = !allocation
+        allocation = tryCatch(expr = {seperator(x, y, z)}, error = function(e){print(e);matrix(TRUE, nrow = length(x), ncol = length(y))})
+        # allocation = seperator(x, y, z)
+        if(allocation[which.min(abs(x - x0)), which.min(abs(y - y0))] == FALSE)
+        {
+            allocation = !allocation
+        }
+        wt = ker((x - x0)/h, (y - y0)/h) * allocation
     }
-    wt = ker((x - x0)/h, (y - y0)/h) * allocation
+    else
+    {
+        wt = ker((x - x0)/h, (y - y0)/h)
+    }
     return(sum(wt * z)/sum(wt))
 }
-print(npr(x[1], y[1], x, y, z))
-npr_2d = function(x0, y0, x, y, z, h = 0.5, ker = kernel, l = 0.03)
+# print(npr(x[1], y[1], x, y, z))
+npr_2d = function(x0, y0, x, y, z, h = 0.5, ker = kernel, l = 0.03, jump = TRUE)
 {
-    mapply(npr, x0, y0, MoreArgs = list(x=x, y=y, z=z, h = h, ker = ker, l = l + .Machine$double.eps*100))
+    mapply(npr, x0, y0, MoreArgs = list(x=x, y=y, z=z, h = h, ker = ker, l = l + .Machine$double.eps*100, jump = jump))
 }
 
 
-h = seq(0.10, 1.0, by=0.05)
-mse = NULL
-for(k in 1:length(h))
-{
-    Z = outer(x, y, npr_2d, x=x, y=y, z=z, h=h[k])
-    mse[k] = mean((z-Z)^2) ################### z0 or z
-    print(h[k]); print('Done.')
-}
-plot(h, mse)
-print(h[which.min(mse)])
-abline(v=h[which.min(mse)])
+# h = seq(0.10, 1.0, by=0.05)
+# mse = NULL
+# for(k in 1:length(h))
+# {
+#     Z = outer(x, y, npr_2d, x=x, y=y, z=z, h=h[k])
+#     mse[k] = mean((z-Z)^2) ################### z0 or z
+#     print(h[k]); print('Done.')
+# }
+# plot(h, mse)
+# print(h[which.min(mse)])
+# abline(v=h[which.min(mse)])
 
-Z = outer(x, y, npr_2d, x=x, y=y, z=z, h=h[which.min(mse)])
+# Z = outer(x, y, npr_2d, x=x, y=y, z=z, h=h[which.min(mse)])
+Z = outer(x, y, npr_2d, x=x, y=y, z=z, h=0.9, l = 0.04)
 
 persp3D(z = Z)
-print(1)
+print('Done. Click on plot to continue')
+locator(1)
 
 
-z = z0 + rnorm(nrow(z0)*ncol(z0), 0, 0.5)
-persp3D(z = z)
-lpr = function(x0, y0, x, y, z, h = 0.5, ker = kernel, l = 0.4)
+# z = z0 + rnorm(nrow(z0)*ncol(z0), 0, 0.5)
+# persp3D(z = z)
+lpr = function(x0, y0, x, y, z, h = 0.5, ker = kernel, l = 0.04, jump = TRUE)
 {
     x_window = which(abs(x - x0) <= l)
     y_window = which(abs(y - y0) <= l)
     x = x[x_window]; y = y[y_window]; z = z[x_window, y_window]
-    allocation = tryCatch(expr = {seperator(x, y, z)}, error = function(e){print(e);matrix(TRUE, nrow = length(x), ncol = length(y))})
-    # allocation = seperator(x, y, z)
-    if(allocation[which.min(abs(x - x0)), which.min(abs(y - y0))] == FALSE)
+    if(jump)
     {
-        allocation = !allocation
+        allocation = tryCatch(expr = {seperator(x, y, z)}, error = function(e){print(e);matrix(TRUE, nrow = length(x), ncol = length(y))})
+        # allocation = seperator(x, y, z)
+        if(allocation[which.min(abs(x - x0)), which.min(abs(y - y0))] == FALSE)
+        {
+            allocation = !allocation
+        }
+        wt = ker((x - x0)/h, (y - y0)/h) * allocation
     }
-    wt = ker((x - x0)/h, (y - y0)/h) * allocation
+    else
+    {
+        wt = ker((x - x0)/h, (y - y0)/h)
+    }
     # wt = ker((x - x0)/h, (y - y0)/h)
     # X = replicate(length(y), x)
     # Y = replicate(length(x), y)
@@ -274,28 +292,28 @@ lpr = function(x0, y0, x, y, z, h = 0.5, ker = kernel, l = 0.4)
     W = solve(W)
     c(1, x0, y0) %*% W %*% c(sum_wt_z, sum_wt_xz, sum_wt_yz)
 }
-print(lpr(x[1], y[1], x, y, z))
+# print(lpr(x[1], y[1], x, y, z))
 
-lpr_2d = function(x0, y0, x, y, z, h = 0.5, ker = kernel, l = 0.03)
+lpr_2d = function(x0, y0, x, y, z, h = 0.5, ker = kernel, l = 0.03, jump = TRUE)
 {
-    mapply(lpr, x0, y0, MoreArgs = list(x=x, y=y, z=z, h = h, ker = ker, l = l + .Machine$double.eps*100))
+    mapply(lpr, x0, y0, MoreArgs = list(x=x, y=y, z=z, h = h, ker = ker, l = l + .Machine$double.eps*100, jump = jump))
 }
-Z = outer(x, y, lpr_2d, x=x, y=y, z=z, h=0.35) + .Machine$double.eps*100
+Z = outer(x, y, lpr_2d, x=x, y=y, z=z, h=0.9, l = 0.04)
 persp3D(z = Z)
 
-h = seq(0.05, 0.5, by=0.05)
-mse = NULL
-for(k in 1:length(h))
-{
-    Z = outer(x, y, lpr_2d, x=x, y=y, z=z, h=h[k])
-    mse[k] = mean((z-Z)^2) ############ z0 or z
-    print(h[k]); print('Done.')
-}
-plot(h, mse)
-print(h[which.min(mse)])
-abline(v=h[which.min(mse)])
+# h = seq(0.05, 0.5, by=0.05)
+# mse = NULL
+# for(k in 1:length(h))
+# {
+#     Z = outer(x, y, lpr_2d, x=x, y=y, z=z, h=h[k])
+#     mse[k] = mean((z-Z)^2) ############ z0 or z
+#     print(h[k]); print('Done.')
+# }
+# plot(h, mse)
+# print(h[which.min(mse)])
+# abline(v=h[which.min(mse)])
 
-Z = outer(x, y, lpr_2d, x=x, y=y, z=z, h=h[which.min(mse)])
+# Z = outer(x, y, lpr_2d, x=x, y=y, z=z, h=h[which.min(mse)])
 
-persp3D(z = Z)
-print(10)
+# persp3D(z = Z)
+print('Complete.. ')
