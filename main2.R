@@ -1,16 +1,13 @@
+#################################################################
+#################################################################
+###### Go to end to modify h, l, function etc... ################
+#################################################################
+#################################################################
 # library(png)
 # library(jpeg)
 library(plot3D)
-f = function(x, y)
-{
-    -2*(x-0.5)^2 - 2*(y-0.5)^2 + as.numeric( (x-0.5)^2 + (y-0.5)^2 <= 0.25*0.25)
-}
-x = y = 0:99 / 100
-z0 = outer(x, y, f)
-z = z0 + rnorm(nrow(z0)*ncol(z0), 0, 0.5)
-persp3D(z = z)
-print('View input. Click to continue.')
-locator(1)
+
+
 triangular_1d = function(x)
 {
     (1 - abs(x)) * as.numeric(abs(x) <= 1)
@@ -244,12 +241,6 @@ npr_2d = function(x0, y0, x, y, z, h = 0.5, ker = kernel, l = 0.03, jump = TRUE)
 # abline(v=h[which.min(mse)])
 
 # Z = outer(x, y, npr_2d, x=x, y=y, z=z, h=h[which.min(mse)])
-Z = outer(x, y, npr_2d, x=x, y=y, z=z, h=0.6, l = 0.05)
-
-persp3D(z = Z)
-print('Done. Click on plot to continue')
-locator(1)
-
 
 # z = z0 + rnorm(nrow(z0)*ncol(z0), 0, 0.5)
 # persp3D(z = z)
@@ -298,8 +289,31 @@ lpr_2d = function(x0, y0, x, y, z, h = 0.5, ker = kernel, l = 0.03, jump = TRUE)
 {
     mapply(lpr, x0, y0, MoreArgs = list(x=x, y=y, z=z, h = h, ker = ker, l = l + .Machine$double.eps*100, jump = jump))
 }
-Z = outer(x, y, lpr_2d, x=x, y=y, z=z, h=0.6, l = 0.05)
-persp3D(z = Z)
+
+
+################################################
+##############  CHANGE HERE  ###################
+################################################
+f = function(x, y)
+{
+    -2*(x-0.5)^2 - 2*(y-0.5)^2 + as.numeric( (x-0.5)^2 + (y-0.5)^2 <= 0.25*0.25)
+}
+# f=function(x, y){x + as.numeric(y > 0.375 + 0.25*x | x > 0.5)}
+x = y = 0:99 / 100
+z0 = outer(x, y, f)
+z = z0 + rnorm(nrow(z0)*ncol(z0), 0, 0.5)
+
+persp3D(z = z)
+print('View input. Click to continue.')
+locator(1)
+
+Z0 = outer(x, y, npr_2d, x=x, y=y, z=z, h=0.166, l = 0.06)
+persp3D(z = Z0)
+print('Done. Click on plot to continue')
+locator(1)
+
+Z1 = outer(x, y, lpr_2d, x=x, y=y, z=z, h=0.166, l = 0.05)
+persp3D(z = Z1)
 
 # h = seq(0.05, 0.5, by=0.05)
 # mse = NULL
