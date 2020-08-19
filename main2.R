@@ -95,7 +95,7 @@ seperator = function(X, Y, Z) ##### X, Y vector, Z matrix len(X)xlen(Y)
     Fstat = ((RSS0-RSS)/3) / (RSS/(length(x)-6))
     pvalue = pf(Fstat, 3, length(x)-6, lower.tail = FALSE)
     # print(c(Fstat, pvalue, 3, length(x) - 6))
-    if(pvalue > 0.00001)
+    if(pvalue > 0.001)
     {
         return(matrix(TRUE, nrow = nrow(X), ncol = ncol(Y)))
     }
@@ -301,19 +301,19 @@ f = function(x, y)
 # f=function(x, y){x + as.numeric(y > 0.375 + 0.25*x | x > 0.5)}
 x = y = 0:99 / 100
 z0 = outer(x, y, f)
-z = z0 + rnorm(nrow(z0)*ncol(z0), 0, 0.5)
+z = z0 + rnorm(nrow(z0)*ncol(z0), 0, 0.3)
 
 persp3D(z = z)
 print('View input. Click to continue.')
-locator(1)
+# locator(1)
 
-Z0 = outer(x, y, npr_2d, x=x, y=y, z=z, h=0.166, l = 0.06)
-persp3D(z = Z0)
-print('Done. Click on plot to continue')
-locator(1)
+# Z0 = outer(x, y, npr_2d, x=x, y=y, z=z, h=0.166, l = 0.06)
+# persp3D(z = Z0)
+# print('Done. Click on plot to continue')
+# locator(1)
 
-Z1 = outer(x, y, lpr_2d, x=x, y=y, z=z, h=0.166, l = 0.05)
-persp3D(z = Z1)
+# Z1 = outer(x, y, lpr_2d, x=x, y=y, z=z, h=0.166, l = 0.05)
+# persp3D(z = Z1)
 
 # h = seq(0.05, 0.5, by=0.05)
 # mse = NULL
@@ -331,3 +331,34 @@ persp3D(z = Z1)
 
 # persp3D(z = Z)
 print('Complete.. ')
+
+
+drawSurf=function(x, y, z, main="", adjust = TRUE)
+{
+    X=mesh(x,y)$x
+    Y=mesh(x,y)$y
+    nbcol = 100
+    color = rev(rainbow(nbcol, start = 0/6, end = 4/6))
+    zcol  = cut(z, nbcol)
+    persp3d(x=X, y = Y, z, col = color[zcol], size=2, axes=TRUE, xlab="x", ylab="y", zlab="z", main=main)
+    if(adjust)
+    {
+        view3d(0,0)
+    }
+}
+drawScat=function(x, y, z, main="", adjust=TRUE)
+{
+    X=mesh(x,y)$x
+    Y=mesh(x,y)$y
+    nbcol = 100
+    color = rev(rainbow(nbcol, start = 0/6, end = 4/6))
+    zcol  = cut(z, nbcol)
+    plot3d(x=X, y = Y, z, col = color[zcol], size=2, axes=TRUE, xlab="x", ylab="y", zlab="z", main=main)
+    if(adjust)
+        view3d(0,0)
+}
+
+# mfrow3d(1, 2, sharedMouse = TRUE)                                                                                                         
+# drawScat(x, y, z, "Noisy Data, SD=0.3")                                                                                                    
+# drawSurf(x, y, z, "Surface formed with data points")                                                                                       
+# htmlwidgets::saveWidget(rglwidget(height=400, width=800), file = "input.html", background = "#222222")      

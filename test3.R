@@ -2,7 +2,7 @@ library(plot3D)
 x = y = 0:99/100
 f = function(x, y)
 {
-    2*x + 3*y^2 + 5.5 + 4.0*x*as.numeric(x>0.52)
+    2*x + 3*y^2 + 1.0*as.numeric(x>0.51)
     # sin((x+y)) + as.numeric(x > 0.5) * cos((x+y)) * 0.2
     # 10 * x^2 #+ 0.5*y^2 * as.numeric(x>0.5)
 }
@@ -14,10 +14,10 @@ index = x >= 0.46 & x <= 0.54
 x = x[index]
 y = y[index]
 z = outer(x, y, f)
-z = z + rnorm(nrow(z) * ncol(z), 0, 1)
+z = z + rnorm(nrow(z) * ncol(z), 0, 0.2)
 persp3D(z = z)
 print('Waiting...')
-Sys.sleep(3)
+# Sys.sleep(3)
 X = mesh(x, y)$x
 Y = mesh(x, y)$y
 model = lm(as.vector(z) ~ as.vector(X) + as.vector(Y))$coefficie
@@ -220,6 +220,6 @@ test = function(X ,Y,z, model)
         }
     }
     o = order(c_set)
-    plot(c_set[o], error[o], ty='b')
+    plot(c_set[o], error[o], ty='b', xlab="c", ylab="RSS", main="RSS for different partitioning lines", pch=19, cex=0.3)
     c_set[which.min(error)]
 }
